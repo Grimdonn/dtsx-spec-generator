@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import os
 from docx import Document
 from docx.shared import Inches
+from docx.enum.table import WD_TABLE_ALIGNMENT
 
 # Added to make data types readable
 SSIS_TYPE_MAP = {
@@ -226,3 +227,4 @@ if __name__ == "__main__":
         generate_word_doc(parser, output_docx)
     else:
         print(f"Error: {dtsx_path} not found.")
+
