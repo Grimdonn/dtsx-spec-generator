@@ -23,7 +23,7 @@ Documenting SSIS packages manually can be time-consuming and prone to errors. Th
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/dtsx-spec-generator.git
+   git clone https://github.com/Grimdonn/dtsx-spec-generator.git
    cd dtsx-spec-generator
    ```
 
@@ -62,3 +62,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request or open an issue for any bugs or feature requests.
+
