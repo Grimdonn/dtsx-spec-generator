@@ -3,6 +3,29 @@ import os
 from docx import Document
 from docx.shared import Inches
 
+# Added to make data types readable
+SSIS_TYPE_MAP = {
+    "11": "DT_BOOL (Boolean)",
+    "2": "DT_I2 (Int16)",
+    "3": "DT_I4 (Int32)",
+    "20": "DT_I8 (Int64)",
+    "4": "DT_R4 (Float)",
+    "5": "DT_R8 (Double)",
+    "6": "DT_CY (Currency)",
+    "7": "DT_DATE (Date)",
+    "128": "DT_BYTES (Binary)",
+    "129": "DT_STR (Ansi String)",
+    "130": "DT_WSTR (Unicode String)",
+    "131": "DT_NUMERIC (Decimal)",
+    "133": "DT_DBDATE (Database Date)",
+    "134": "DT_DBTIME (Database Time)",
+    "135": "DT_DBTIMESTAMP (Database Timestamp)",
+    "141": "DT_NUMERIC (High Precision)",
+    "145": "DT_DBTIME2 (Database Time 2)",
+    "302": "DT_TEXT (Long Ansi String)",
+    "303": "DT_NTEXT (Long Unicode String)"
+}
+
 class DTSXParser:
     def __init__(self, file_path):
         self.file_path = file_path
@@ -53,10 +76,11 @@ class DTSXParser:
                 if columns_node is not None:
                     cols = []
                     for col in columns_node.findall('DTS:FlatFileColumn', self.ns):
+                        # Added type mapping for readability
+                        type_code = col.get(f"{{{self.ns['DTS']}}}DataType", "Unknown")
                         cols.append({
                             'Name': col.get(f'{{{self.ns["DTS"]}}}ObjectName'),
-                            'DataType': col.get(f'{{{self.ns["DTS"]}}}DataType'),
-                            'Delimiter': col.get(f'{{{self.ns["DTS"]}}}ColumnDelimiter'),
+                            'DataType': SSIS_TYPE_MAP.get(type_code, f"Code {type_code}"),
                             'Width': col.get(f'{{{self.ns["DTS"]}}}MaximumWidth', 'N/A')
                         })
                     self.flat_file_columns.append({
@@ -129,6 +153,7 @@ def generate_word_doc(parser, output_path):
     if parser.connections:
         table = doc.add_table(rows=1, cols=3)
         table.style = 'Table Grid'
+        table.alignment = WD_TABLE_ALIGNMENT.CENTER
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = 'Name'
         hdr_cells[1].text = 'Type'
@@ -146,6 +171,7 @@ def generate_word_doc(parser, output_path):
     if parser.variables:
         table = doc.add_table(rows=1, cols=3)
         table.style = 'Table Grid'
+        table.alignment = WD_TABLE_ALIGNMENT.CENTER
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = 'Name'
         hdr_cells[1].text = 'Data Type'
@@ -172,19 +198,18 @@ def generate_word_doc(parser, output_path):
     if parser.flat_file_columns:
         for ff in parser.flat_file_columns:
             doc.add_heading(f"Connection: {ff['ConnectionName']}", level=2)
-            table = doc.add_table(rows=1, cols=4)
+            table = doc.add_table(rows=1, cols=3)
             table.style = 'Table Grid'
+            table.alignment = WD_TABLE_ALIGNMENT.CENTER
             hdr_cells = table.rows[0].cells
             hdr_cells[0].text = 'Column Name'
             hdr_cells[1].text = 'Data Type'
             hdr_cells[2].text = 'Width'
-            hdr_cells[3].text = 'Delimiter'
             for col in ff['Columns']:
                 row_cells = table.add_row().cells
                 row_cells[0].text = col['Name']
                 row_cells[1].text = col['DataType']
                 row_cells[2].text = str(col['Width'])
-                row_cells[3].text = col['Delimiter'].replace('_x000D__x000A_', '\\r\\n').replace('_x0009_', '\\t')
     else:
         doc.add_paragraph('No flat file columns found.')
 
